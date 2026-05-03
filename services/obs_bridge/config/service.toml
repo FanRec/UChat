@@ -1,0 +1,53 @@
+# obs_bridge 静态配置
+# 字幕 overlay 服务，通过 WebSocket 向 OBS Browser Source 推送实时字幕。
+
+[service]
+service_name = "obs_bridge"
+listen_host = "127.0.0.1"
+listen_port = 8104
+mock_mode = false
+
+[overlay]
+# 每句字幕显示时长（秒），整轮结束后再统一计时淡出
+display_duration = 8.0
+# 打字机效果每字符间隔（毫秒），0 = 立即显示
+typewriter_speed_ms = 35
+# 整轮结束后的淡出延迟（秒），等 TTS 说完
+turn_end_fade_delay = 4.0
+# 淡入/淡出动画时长（毫秒）
+fade_in_ms = 250
+fade_out_ms = 500
+# 最大同时显示行数（超过时移除最旧行）
+max_lines = 5
+# 字体大小（CSS 值）
+font_size = "22px"
+# 默认字体颜色
+font_color = "#FFFFFF"
+# 当前正在说的那句高亮色
+active_color = "#FFFFFF"
+# 已说完的句子变暗色
+dim_color = "rgba(255,255,255,0.55)"
+# 文字阴影
+text_shadow = "0 1px 4px rgba(0,0,0,0.8)"
+# 半透明背景色（当前行胶囊底）
+background = "rgba(30,30,35,0.82)"
+border_radius = "20px"
+padding = "7px 16px"
+# 位置：bottom_center / bottom_left / bottom_right / top_center
+position = "bottom_center"
+# 底部偏移量
+bottom_offset = "60px"
+# 最大宽度
+max_width = "750px"
+# 行间距
+line_spacing = "6px"
+# 样式预设：bubble / minimal / cyberpunk
+style_preset = "bubble"
+
+[observability]
+# 日志等级
+log_level = "INFO"
+# 是否输出调试转储
+debug_dump_enabled = false
+# 调试转储目录
+debug_dump_dir = "debug/obs_bridge"

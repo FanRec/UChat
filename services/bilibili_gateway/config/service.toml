@@ -1,0 +1,86 @@
+# bilibili_gateway 静态配置
+# 只放服务启动所需的默认值、认证入口和窗口参数。
+# 不要把运行时事实（当前连击态、当前弹幕速度、实时统计）回写到这里。
+
+[service]
+# 服务名，仅用于日志与健康检查标识
+service_name = "bilibili_gateway"
+# 对外暴露给 uchat-core 的 HTTP base URL
+base_url = "http://127.0.0.1:8110"
+# 服务监听地址
+listen_host = "127.0.0.1"
+# 服务监听端口
+listen_port = 8110
+# true = mock 模式，不主动连接真实直播间
+# false = 真实联调模式，会尝试用房间与认证信息连接 B 站
+mock_mode = false
+
+[bilibili.room]
+# 真实联调时要连接的直播间 room_id
+room_id = "24194689"
+# 可选：主播 uid，用于部分房间信息初始化或后续扩展
+owner_uid = 0
+
+[bilibili.auth]
+# 推荐通过环境变量注入，而不是把敏感值直接写死在 toml
+# 例如在当前终端先 set BILIBILI_SESSDATA=xxxx 再启动
+# 如果后续需要真实登录态，至少通常会用到下面这些 cookie 字段
+sessdata = "${BILIBILI_SESSDATA}"
+bili_jct = "${BILIBILI_BILI_JCT}"
+buvid3 = "${BILIBILI_BUVID3}"
+dedeuserid = "${BILIBILI_DEDEUSERID}"
+
+[gateway.windows]
+# 普通弹幕短时去重窗口
+dedupe_window_ms = 1500
+# 爆发折叠窗口，当前先与 dedupe 同步
+burst_window_ms = 1500
+# 普通弹幕聚合摘要窗口
+aggregate_window_ms = 8000
+# 场景统计窗口，用于估算弹幕速度、观众密度、风险等级
+scene_stats_window_ms = 25000
+
+[gateway.combo]
+# 礼物连击 quiet timeout
+# 超过这个时间没有新的同人同礼物事件，就认为该 combo 可以收口
+combo_quiet_timeout_ms = 2500
+# 连击里程碑
+# 只在这些节点上发出节流后的 combo update，避免逐笔把她推成复读机
+milestone_counts = [1, 5, 10, 20, 50, 100]
+# 同一 combo 中途 update 的最小发射间隔
+update_throttle_ms = 1500
+# 同一 combo 最多允许产生多少次高 reply value 候选
+# 当前策略建议保持 2：开始一次，结束总结一次
+max_reply_candidates_per_combo = 2
+
+[gateway.queue]
+# 内存事件队列最大保留数
+max_events = 512
+# 游标可回看的保留深度
+cursor_retention = 512
+# /v1/bilibili/events 默认单次拉取条数
+poll_default_limit = 50
+
+[gateway.risk]
+# 可选：轻量风险规则文件路径
+# 留空时走内置默认规则
+rule_file = ""
+# 输入侧轻量风险层没有特殊命中时的默认 reply_policy
+default_reply_policy = "normal_reply"
+
+[gateway.observability]
+# 服务日志等级
+log_level = "INFO"
+# 是否额外输出调试转储
+# 真实联调期建议打开，这样可以看到 RAW -> 折叠/聚合 -> 最终 emit 的消息流
+debug_dump_enabled = true
+# 网关侧 live 连接诊断 JSON 输出目录
+debug_dump_dir = "debug/bilibili_gateway"
+
+[gateway.testing]
+# true 时允许使用 offline_history / offline_test 做联调，但不再改变 live 的默认语义
+offline_test_mode_enabled = true
+# live 连接失败后的显式 fallback。
+# 留空 = live 失败就失败，不偷偷切模式。
+# 可选值："" / "offline_history"
+live_connect_fallback_mode = ""

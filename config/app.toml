@@ -1,0 +1,155 @@
+# UChat 主运行配置
+# 敏感信息不要写在这里，模型 API Key 请放到本地 .env
+[runtime]
+# 场景 ID：用于事件归属和后续多场景扩展
+scene_id = "scene_live_001"
+# 会话窗口 ID：当前控制台会话的逻辑标识
+session_window_id = "session_live_001"
+# 提示词与角色文本使用的语言区域
+locale = "zh-CN"
+
+identity = '''
+You are a friendly, expressive digital role assistant.
+
+Keep responses natural, concise, and helpful:
+- avoid mechanical phrasing
+- keep a little personality, but do not attack the user
+- stay calm and supportive when the user is stressed
+
+This is a public example identity.
+Replace it with your own character prompt.
+'''
+# audience_scope 只表达受众范围，不再兼任节目模式
+# stream = 面向公开直播受众；后续可扩为 private / group / dm 等
+audience_scope = "stream"
+# 当前运行环境：console / live_stream / private_chat
+scene_kind = "live_stream"
+
+[scene_defaults]
+show_profile = "free_talk"
+program_topic = ""
+segment_topic = ""
+micro_topic = ""
+danmaku_velocity = "n/a"
+audience_density = "n/a"
+risk_level = "L0"
+
+[timing_gate]
+# 直播高价值事件的直接回复阈值
+priority_reply_threshold = 0.72
+# 付费事件在较低 reply_value 下仍可优先回复
+paid_reply_threshold = 0.45
+# 风险分数达到该阈值后默认走 observe_only
+risk_observe_only_threshold = 0.5
+# 输出队列拥堵阈值
+busy_queue_depth_threshold = 3
+# 聚合事件低于该 show_value 时默认只观察
+aggregated_show_value_threshold = 0.65
+# 高观众密度下普通事件的保守回复阈值
+dense_audience_reply_threshold = 0.55
+# 高互动热度下普通事件的保守回复阈值
+high_engagement_reply_threshold = 0.55
+# 冷场保活回复的最低 reply_value
+cooling_keepalive_reply_threshold = 0.35
+# 默认 reply / wait 分流阈值
+default_reply_threshold = 0.45
+# 低价值弹幕的最长文本长度
+low_value_max_length = 1
+# 单一重复字符刷屏识别的最短长度
+repeated_char_skip_min_length = 3
+# 直接判为低价值的常见字面量
+low_value_literal_tokens = ["6", "66", "666", "dd", "1", "?", "？"]
+
+[identity_store]
+# memory / sqlite
+store_type = "sqlite"
+# 身份库本地路径
+sqlite_path = "data/identity.sqlite3"
+# 如当前部署只有一个固定控制台操作者，可填默认 person_id；留空则不自动绑定
+default_console_person_id = ""
+
+[prompt]
+# 提示词根目录，文件仍按 prompts/<locale>/*.prompt 组织
+root_dir = "prompts"
+# 当前提示词版本标签，会进入 prompt preview 元数据
+version = "v0.6"
+
+[ltmem]
+# LTMem HTTP 服务地址
+base_url = "http://127.0.0.1:8080"
+# 单次 LTMem 请求超时（秒）
+timeout_seconds = 30.0
+# 运行模式：disabled / optional / required
+mode = "disabled"
+# 启动时是否先打 /health 做健康检查
+startup_healthcheck = true
+# ContextPack 构建失败时，是否优先回退到最近成功缓存
+use_cached_context_on_failure = true
+# optional 模式下后台心跳检查间隔（秒）
+heartbeat_interval_seconds = 5.0
+
+[debug]
+# 是否写入 debug/traces/<trace_id> 调试文件
+enabled = true
+# 单轮调试文件根目录
+root_dir = "debug/traces"
+# 是否保存 LLM request / stream events / stream summary
+save_llm_payloads = true
+# 是否在控制台中展示完整 LTMem ContextPack
+show_memory_context_in_console = true
+# 控制台视图：
+# - conversation：平常使用看的完整消息流
+# - timeline：调试看的消息链时间线
+# - minimal：最小输出
+# - off：关闭控制台视图
+console_view = "conversation"
+# 是否在 timeline 中完整展示 OUTPUT 之前的模型/工具结果
+show_full_pre_output_results = true
+# 是否写入 prompt preview 工件
+save_prompt_preview = true
+# 调试工件命名模式：standard / trace_prefixed
+artifact_name_mode = "standard"
+# 预留给 prompt 预览截断长度，当前控制台视图暂未直接使用
+prompt_preview_chars = 1200
+# 调试摘要截断长度：memory / output / llm summary 等会复用它
+memory_summary_chars = 280
+
+[logging]
+# 结构化日志目录
+log_dir = "logs"
+# root logger 总等级
+level = "INFO"
+# 控制台普通日志等级（不影响 conversation / timeline 视图本身）
+console_level = "INFO"
+# JSONL 文件日志等级
+file_level = "DEBUG"
+# 单个日志文件最大大小（字节）
+max_bytes = 5242880
+# 轮转保留数量
+backup_count = 10
+
+[services.ltmem]
+url = "http://127.0.0.1:8080"
+required = false
+timeout_ms = 30000
+
+[services.tts]
+url = "http://127.0.0.1:8102"
+required = false
+# GPT-SoVITS 推理通常需要 5-30 秒，60s 给足余量
+timeout_ms = 60000
+
+[services.obs]
+url = "http://127.0.0.1:8104"
+required = false
+timeout_ms = 3000
+
+[services.body]
+url = "http://127.0.0.1:8103"
+required = false
+timeout_ms = 3000
+
+[services.platform.bilibili]
+url = "http://127.0.0.1:8110"
+required = false
+timeout_ms = 3000

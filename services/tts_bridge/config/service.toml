@@ -1,0 +1,66 @@
+service_name = "tts_bridge"
+base_url = "http://127.0.0.1:8102"
+host = "127.0.0.1"
+port = 8102
+vendor_port = 9880
+startup_timeout_ms = 30000
+request_timeout_ms = 120000
+output_dir = "services/tts_bridge/output"
+# 是否自动播放合成的音频（Windows: winsound, 回退到文件路径输出）
+playback_enabled = true
+
+[vendor]
+api_style = "api_v2"
+python_executable = "python"
+entry_script = "services/tts_bridge/vendor/gpt_sovits_v2pro/api_v2.py"
+tts_config_path = "services/tts_bridge/config/zhenxun_tts_infer.yaml"
+device = "cuda"
+
+[preset]
+ref_audio_path = "services/tts_bridge/assets/zhenxun_gpt_sovits/zhenxun_ref_main.wav"
+prompt_text = "便利ですね。上司の装備はとても充実していますね。"
+prompt_lang = "ja"
+# 输入文本是中文（模型是日文语音训练，但可以合成中文）
+text_lang = "zh"
+text_split_method = "cut5"
+speed_factor = 1.2
+media_type = "wav"
+
+# 流式播放配置（边合成边播，降低首字延迟）
+[streaming]
+enabled = true
+stream_strategy = "adaptive"
+# vendor 返回格式：raw = int16 PCM（最低延迟，无封装头）
+media_type = "raw"
+# GPT-SoVITS 默认采样率（raw 模式无头信息，需显式指定）
+sample_rate = 32000
+# vendor 连续性优先流式档位
+vendor_streaming_mode = 2
+# 语义 chunk 下限，增大后能减少很碎的小块
+min_chunk_length = 48
+# chunk 间隔（秒），连续性优先时适当放大
+fragment_interval = 0.10
+# 批次大小
+batch_size = 1
+# 预缓冲时长（毫秒）。太小容易句内停顿，太大则会拉高首字延迟。
+prebuffer_ms = 260
+# 进入低水位后，恢复播放前等待补到的缓冲时长（毫秒）
+rebuffer_ms = 420
+# vendor 流结束后，最多等待播放器清空缓冲区多久
+drain_timeout_ms = 2000
+# 只有在流式阶段还没真正播出时，才允许自动回退到 batch
+fallback_to_batch_on_failure = true
+# adaptive 阈值：当前句表现差时，后续句临时切 batch
+adaptive_playback_start_latency_ms = 2000
+adaptive_rebuffer_threshold = 2
+adaptive_max_chunk_gap_ms = 400.0
+adaptive_realtime_factor_threshold = 0.85
+adaptive_batch_recovery_successes = 2
+# sounddevice 输出设备名（留空 = 系统默认输出设备）
+# device = ""
+
+[subtitle_sync]
+enabled = true
+obs_base_url = "http://127.0.0.1:8104"
+progress_interval_ms = 33
+fallback_mode = "sentence_only"

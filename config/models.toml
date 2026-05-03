@@ -1,0 +1,32 @@
+[providers.deepseek]
+base_url = "https://api.deepseek.com"
+api_key_env = "DEEPSEEK_API_KEY"
+timeout_seconds = 60.0
+protocol = "openai_compatible"
+
+[profiles.replyer_default]
+provider_id = "deepseek"
+model = "deepseek-chat"
+temperature = 0.8
+max_tokens = 800
+
+[profiles.reasoning_default]
+provider_id = "deepseek"
+model = "deepseek-chat"
+temperature = 0.4
+max_tokens = 800
+
+[routes.replyer]
+profile_id = "replyer_default"
+
+[routes.planner]
+profile_id = "reasoning_default"
+
+[routes.timing_gate]
+profile_id = "reasoning_default"
+
+[routes.safety]
+profile_id = "reasoning_default"
+
+[routes.summarizer]
+profile_id = "reasoning_default"

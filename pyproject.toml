@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uchat"
+version = "0.1.0"
+description = "UChat digital life runtime."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "blivedm>=1.1.6",
+  "fastapi>=0.136.1",
+  "httpx>=0.27.0",
+  "rich>=15.0.0",
+  "sounddevice>=0.4.6",
+  "uvicorn>=0.46.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+]
+
+[project.scripts]
+uchat = "uchat.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.setuptools.packages.find]
+include = ["uchat*"]
+
+[tool.uv.sources]
+blivedm = { git = "https://github.com/xfgryujk/blivedm.git" }

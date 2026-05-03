@@ -1,0 +1,104 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  font-family: "Nunito", "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: auto 50% 10px;
+  width: min(70vw, 760px);
+  height: 150px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at center, rgba(255, 212, 236, 0.12), rgba(255, 212, 236, 0));
+  pointer-events: none;
+  filter: blur(12px);
+}
+
+#subtitle-container {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  width: min(72vw, 760px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.subtitle-line {
+  min-height: 1.4em;
+  max-width: 100%;
+  padding: 3px 12px;
+  text-align: center;
+  font-size: 29px;
+  line-height: 1.34;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fffdfd;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 14px;
+  background: rgba(24, 26, 34, 0.14);
+  -webkit-text-stroke: 4px rgba(31, 21, 39, 0.92);
+  paint-order: stroke fill;
+  text-shadow:
+    0 2px 0 rgba(31, 21, 39, 0.7),
+    0 3px 12px rgba(0, 0, 0, 0.26);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.16) inset,
+    0 10px 24px rgba(20, 18, 30, 0.1);
+  opacity: 1;
+}
+
+.subtitle-line.dim,
+.subtitle-line.active {
+  opacity: 1;
+  background: rgba(24, 26, 34, 0.14);
+}
+
+.subtitle-line.typing::after {
+  content: "";
+  display: inline-block;
+  width: 0.32em;
+}
+
+@media (max-width: 1280px) {
+  #subtitle-container {
+    width: min(80vw, 720px);
+    bottom: 26px;
+  }
+
+  .subtitle-line {
+    font-size: 25px;
+    -webkit-text-stroke-width: 3px;
+  }
+}
+
+@media (max-width: 768px) {
+  #subtitle-container {
+    width: min(90vw, 640px);
+    bottom: 18px;
+    gap: 4px;
+  }
+
+  .subtitle-line {
+    padding: 2px 9px;
+    font-size: 20px;
+    line-height: 1.28;
+    border-radius: 10px;
+    -webkit-text-stroke-width: 2.6px;
+  }
+}

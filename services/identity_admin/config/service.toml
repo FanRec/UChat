@@ -1,0 +1,8 @@
+[service]
+service_name = "identity_admin"
+base_url = "http://127.0.0.1:8112"
+listen_host = "127.0.0.1"
+listen_port = 8112
+
+[observability]
+log_level = "INFO"
