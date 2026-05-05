@@ -108,6 +108,31 @@ Common config entry points:
 - `services/lipsync_bridge/config/service.toml`
 - `services/identity_admin/config/service.toml`
 
+### 4. Restore GPT-SoVITS Runtime and Config If You Want Real TTS
+
+The public repository has removed:
+
+- the bundled GPT-SoVITS vendor/runtime
+- TTS model weights
+- reference audio
+- private model-specific config content used by the original setup
+
+If you want real TTS, you need to prepare and wire these back in yourself:
+
+1. install or place your own GPT-SoVITS runtime
+2. prepare a model config file such as `tts_infer.yaml`
+3. prepare reference audio
+4. update `services/tts_bridge/config/service.toml` with valid paths
+
+The most important fields to check are:
+
+- `[vendor].python_executable`
+- `[vendor].entry_script`
+- `[vendor].tts_config_path`
+- `[preset].ref_audio_path`
+
+If those paths still point to example locations that do not exist in the public repo, `tts_bridge` will fail to start or fail to synthesize audio.
+
 ## Minimal Startup Paths
 
 ### Option 1: Run Only the Core Runtime
@@ -159,6 +184,13 @@ uv run python -m uchat.cli
 ```
 
 This only makes sense once you have prepared the vendor/runtime and model assets. Otherwise, letting the runtime fall back to console TTS is usually better.
+
+Before starting real TTS, it is worth checking in this order:
+
+1. the GPT-SoVITS runtime can start on its own
+2. the vendor and model-config paths in `services/tts_bridge/config/service.toml` are valid
+3. `[preset].ref_audio_path` points to a real reference audio file
+4. if you use CUDA, `[vendor].device` matches the local environment
 
 ### Option 4: Add Bilibili Live Input
 

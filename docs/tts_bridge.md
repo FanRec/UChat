@@ -52,6 +52,38 @@ uv run python -m services.tts_bridge.main --serve
 - 你需要自己准备 `services/tts_bridge/config/service.toml` 所引用的资源
 - 如果不准备真实 TTS，可以先不启动这个服务，让 runtime 退回控制台 TTS
 
+## GPT-SoVITS 安装与补配
+
+当前公开版已经移除了你私有环境里的 GPT-SoVITS 整合包、模型资源和对应配置，因此要跑真实 TTS，需要自行补齐。
+
+建议步骤：
+
+1. 准备你自己的 GPT-SoVITS 运行时目录。
+2. 确认运行时里的 Python 和 API 入口脚本可独立启动。
+3. 准备你的模型配置文件，例如 `tts_infer.yaml`。
+4. 准备参考音频，并确认路径可访问。
+5. 修改 `services/tts_bridge/config/service.toml`。
+
+当前最关键的配置项：
+
+- `[vendor].python_executable`
+  - 指向 GPT-SoVITS 运行时里的 Python
+- `[vendor].entry_script`
+  - 指向 GPT-SoVITS 的 API 入口脚本
+- `[vendor].tts_config_path`
+  - 指向你的模型配置文件
+- `[vendor].device`
+  - `cuda` 或 `cpu`，取决于你的本机环境
+- `[preset].ref_audio_path`
+  - 指向参考音频
+
+如果这些字段仍然保留公开版里的示例路径，服务通常会出现以下问题：
+
+- 启动失败
+- vendor 进程拉不起来
+- 能启动但无法合成
+- 播放链路没有声音
+
 ## 字幕同步
 
 当字幕同步开启时：

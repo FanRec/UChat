@@ -108,6 +108,31 @@ BILIBILI_DEDEUSERID=
 - `services/lipsync_bridge/config/service.toml`
 - `services/identity_admin/config/service.toml`
 
+### 4. 如需真实 TTS，补齐 GPT-SoVITS 运行时与配置
+
+公开版仓库已经移除了：
+
+- GPT-SoVITS 整合包 / vendor runtime
+- TTS 模型权重
+- 参考音频
+- 与你私有模型对应的配置文件内容
+
+如果你要启用真实 TTS，至少需要自己准备并补齐：
+
+1. 安装或放置你自己的 GPT-SoVITS 运行时
+2. 准备模型配置文件，例如 `tts_infer.yaml`
+3. 准备参考音频
+4. 在 `services/tts_bridge/config/service.toml` 中填写正确路径
+
+当前配置里重点需要检查的字段有：
+
+- `[vendor].python_executable`
+- `[vendor].entry_script`
+- `[vendor].tts_config_path`
+- `[preset].ref_audio_path`
+
+如果这些路径仍指向公开版里不存在的示例目录，`tts_bridge` 将无法启动或无法出声。
+
 ## 最小启动方式
 
 ### 方式一：只跑核心 runtime
@@ -159,6 +184,13 @@ uv run python -m uchat.cli
 ```
 
 只有在你已经准备好 vendor/runtime 和模型资源时，这一步才有意义。否则建议先让主链退回控制台 TTS。
+
+真实 TTS 启动前，建议按下面顺序确认：
+
+1. GPT-SoVITS 运行时本身能独立启动。
+2. `services/tts_bridge/config/service.toml` 中的 vendor 路径和模型配置路径有效。
+3. `[preset].ref_audio_path` 指向真实存在的参考音频。
+4. 如使用 CUDA，`[vendor].device` 与本机环境匹配。
 
 ### 方式四：接 B 站直播输入
 
