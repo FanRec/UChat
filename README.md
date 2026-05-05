@@ -2,6 +2,16 @@
 
 ![icon](./README.assets/icon.png)
 
+<p>
+  <a href="./README.md">中文</a> | <a href="./README.en.md">English</a>
+</p>
+
+![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.136%2B-009688?logo=fastapi&logoColor=white)
+![Uvicorn](https://img.shields.io/badge/Uvicorn-0.46%2B-4051B5)
+![uv](https://img.shields.io/badge/uv-managed-5C6AC4)
+![Version](https://img.shields.io/badge/version-0.1.0-6C757D)
+
 UChat 是一个面向“数字角色 / AI 主播 / 可视化聊天体”的本地化运行项目样例。
 
 这个公开版仓库保留了当前主仓库中已经成形的核心运行时、多服务边界和示例配置，但移除了私有环境参数、数据产物、模型资源与个人登录态。它的目标不是“开箱即用的商业成品”，而是提供一套可以继续二次开发、联调和替换实现的工程骨架。
@@ -210,6 +220,7 @@ uv run python -m services.identity_admin.main serve
 建议先看：
 
 - [docs/README.md](docs/README.md)
+- [English docs index](docs/en/README.md)
 - [docs/project_structure_and_run.md](docs/project_structure_and_run.md)
 - [docs/configuration.md](docs/configuration.md)
 - [docs/runtime.md](docs/runtime.md)

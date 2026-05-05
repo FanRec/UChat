@@ -1,5 +1,9 @@
 # 文档导航
 
+<p>
+  <a href="../README.md">中文首页</a> | <a href="../README.en.md">English Home</a> | <a href="./en/README.md">English Docs</a>
+</p>
+
 这个 `docs/` 目录面向公开版 `UChat_Public`，目标是帮助你快速理解当前代码结构、启动路径和服务边界。
 
 ## 推荐阅读顺序
