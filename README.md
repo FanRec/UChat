@@ -4,88 +4,73 @@
 
 UChat 是一个面向“数字角色 / AI 主播 / 可视化聊天体”的本地化运行项目样例。
 
-它当前提供的是一条可运行的最小主链：
+这个公开版仓库保留了当前主仓库中已经成形的核心运行时、多服务边界和示例配置，但移除了私有环境参数、数据产物、模型资源与个人登录态。它的目标不是“开箱即用的商业成品”，而是提供一套可以继续二次开发、联调和替换实现的工程骨架。
 
-- 控制台或直播输入
-- 记忆与上下文拼装
-- LLM 回复生成
-- TTS 输出
-- OBS 实时字幕
-- 身体表现与身份治理的服务边界预留
-
-这个公开版仓库的目标不是“开箱即用的商业级产品”，而是：
-
-1. 给出一套可以本地跑起来的多服务工程骨架
-2. 展示 runtime / TTS / OBS / gateway 的协作方式
-3. 方便你基于自己的角色、模型和直播场景继续改造
-
-## 当前包含什么
+## 当前仓库包含什么
 
 - `uchat/`
-  - 核心运行时、输出队列、适配器、身份、moderation、模型路由
+  - 核心运行时、事件编排、输出调度、身份服务接入、模型路由
+- `services/bilibili_gateway/`
+  - B 站直播输入网关，向 runtime 提供结构化直播事件
 - `services/tts_bridge/`
-  - TTS bridge、播放调度、字幕同步
+  - 句级 TTS 合成与播放服务，负责字幕同步和播放生命周期
 - `services/obs_bridge/`
   - OBS Browser Source 实时字幕服务
-- `services/bilibili_gateway/`
-  - B 站直播输入前处理网关
+- `services/body_service/`
+  - 身体表现执行服务，可接 `mock` 或 `VTube Studio`
+- `services/lipsync_bridge/`
+  - 旁路口型同步 sidecar，把 TTS 音频镜像到 VTS 可监听设备
 - `services/identity_admin/`
   - 本地身份治理入口
-- `services/body_service/`
-  - 身体表现服务边界骨架
 - `config/`
-  - 主运行配置与模型配置
+  - 主运行配置和模型路由配置
 - `prompts/`
-  - Prompt 文件
+  - Prompt 模板
 - `docs/`
-  - 项目说明与模块文档
+  - 面向公开版的总览与模块文档
 
-## 当前不包含什么
+## 公开版默认不包含什么
 
-为了避免隐私和资源分发问题，这个公开版默认不包含：
+为了避免隐私泄露和资源分发问题，仓库默认不包含：
 
 - 私人 `.env`
-- 本地数据库内容
-- debug / logs / data 产物
-- TTS 模型权重与参考音频
-- vendor 运行时目录
 - 私人 cookie / token / session
+- 本地数据库、`debug/`、`logs/`、`data/` 产物
+- TTS 模型权重、参考音频、vendor/runtime 目录
+- 私人角色设定文本与私有联调资源
 
 你需要自行准备：
 
-- 模型 API Key
-- 如需真实直播输入，准备自己的 B 站登录 cookie
-- 如需真实 TTS，准备自己的 GPT-SoVITS vendor/runtime 与模型资源
+- LLM API Key
+- 如需真实直播输入，准备自己的 B 站登录态
+- 如需真实 TTS，准备自己的 GPT-SoVITS 运行时与模型资源
+- 如需真实身体表现或口型联动，准备自己的 VTube Studio / 虚拟音频设备环境
 
-## 本地运行前准备
+## 运行要求
 
-### 1. Python 环境
+- Python `3.12+`
+- `uv`
+- 至少一个可用的模型 API Key
 
-推荐使用 `uv`：
+推荐先执行：
 
-```bash
+```powershell
 uv sync
 ```
 
-或自己创建 Python 3.12 虚拟环境后安装依赖。
+## 本地准备
 
-### 2. 环境变量
+### 1. 创建 `.env`
 
-复制：
+仓库只保留 `.env.example`，本地请自行创建 `.env`。
 
-```bash
-cp .env.example .env
-```
-
-Windows PowerShell 可手动创建 `.env`。
-
-至少需要填写：
+至少需要：
 
 ```dotenv
 DEEPSEEK_API_KEY=your_api_key_here
 ```
 
-如果你要联调真实 B 站直播输入，再补：
+如果你需要联调真实 B 站输入，再补充：
 
 ```dotenv
 BILIBILI_SESSDATA=
@@ -94,116 +79,149 @@ BILIBILI_BUVID3=
 BILIBILI_DEDEUSERID=
 ```
 
-### 3. 修改角色配置
+### 2. 替换公开示例角色
 
-`config/app.toml` 中的 `runtime.identity` 目前只是公开示例文本。
+`config/app.toml` 中的 `runtime.identity` 目前只是公开示例文本，请替换成你自己的角色设定。
 
-请把它替换成你自己的角色设定，不要直接拿示例内容作为最终人格配置。
+不要把真实密钥、cookie 或私有配置直接写进 `config/*.toml`。
 
-### 3.1 身份库
+### 3. 按需检查服务配置
 
-默认使用 SQLite 身份库：
+常见配置入口：
 
-- `data/identity.sqlite3`
-
-首次启动时如果文件不存在，会自动创建。
-
-如果你想只做纯控制台测试，也可以把默认控制台 person 继续保持为空：
-
-- `default_console_person_id = ""`
-
-### 4. TTS 资源
-
-当前仓库不附带 TTS 模型、参考音频和 vendor 运行时。
-
-如果你想跑真实 TTS：
-
-1. 准备 GPT-SoVITS vendor/runtime
-2. 准备模型配置文件
-3. 修改 `services/tts_bridge/config/service.toml`
-
-如果暂时不跑真实 TTS，也可以把 `[services.tts].url` 留空，让主链退回控制台 TTS 适配器。
-
-注意：公开版默认**不附带** TTS 模型、参考音频和 vendor 运行时，它们需要你自己准备。
+- `config/app.toml`
+- `config/models.toml`
+- `services/tts_bridge/config/service.toml`
+- `services/obs_bridge/config/service.toml`
+- `services/bilibili_gateway/config/service.toml`
+- `services/body_service/config/service.toml`
+- `services/lipsync_bridge/config/service.toml`
+- `services/identity_admin/config/service.toml`
 
 ## 最小启动方式
 
-### 方式一：先只跑主程序
+### 方式一：只跑核心 runtime
 
-如果你只是想验证 runtime / prompt / LLM 主链：
+如果你只是想验证 prompt、模型路由和主链回复：
 
-```bash
+```powershell
 uv run python -m uchat.cli
 ```
 
-这要求：
+默认会读取：
 
-- `.env` 已配置好 LLM API Key
-- `config/models.toml` 可正常读取
+- `config/app.toml`
+- `config/models.toml`
+- 本地 `.env`
 
-### 方式二：跑 OBS 实时字幕
+如果 `config/app.toml` 中的 `runtime.scene_kind = "live_stream"`，且 `[services.platform.bilibili].url` 可用，CLI 会同时轮询 `bilibili_gateway` 事件；否则就只保留控制台输入。
 
-先启动字幕服务：
+### 方式二：接 OBS 字幕
 
-```bash
+终端 1：
+
+```powershell
 uv run python -m services.obs_bridge.main --serve
 ```
 
-然后在 OBS 里添加 Browser Source：
+终端 2：
+
+```powershell
+uv run python -m uchat.cli
+```
+
+OBS 中添加 Browser Source：
 
 - URL: `http://127.0.0.1:8104/overlay/`
 
-### 方式三：跑真实 TTS bridge
+### 方式三：接真实 TTS
 
-```bash
+终端 1：
+
+```powershell
 uv run python -m services.tts_bridge.main --serve
 ```
 
-注意：
+终端 2：
 
-- 只有当你已经准备好 vendor/runtime 和模型资源时，这一步才有意义
-- 否则建议先不启用真实 TTS
+```powershell
+uv run python -m uchat.cli
+```
 
-### 方式四：跑直播输入网关
+只有在你已经准备好 vendor/runtime 和模型资源时，这一步才有意义。否则建议先让主链退回控制台 TTS。
 
-```bash
+### 方式四：接 B 站直播输入
+
+终端 1：
+
+```powershell
 uv run python -m services.bilibili_gateway.main serve
 ```
 
-真实直播联调前，请先看：
+终端 2：
 
-- `services/bilibili_gateway/README.md`
-- `services/bilibili_gateway/config/service.toml`
+```powershell
+uv run python -m uchat.cli
+```
 
-## 推荐调试顺序
+### 方式五：接身体表现与口型旁路
 
-1. 先跑 `uchat.cli`，确认 LLM 主链可用
-2. 再跑 `obs_bridge`，确认 OBS 字幕可连通
-3. 再接 `tts_bridge`
-4. 最后再接 `bilibili_gateway`
+身体服务：
 
-这样最容易定位问题，不会一开始就被多服务耦合卡住。
+```powershell
+uv run python -m services.body_service.main --serve
+```
+
+口型旁路：
+
+```powershell
+uv run python -m services.lipsync_bridge.main --serve
+```
+
+这两项都不是 runtime 主链的硬依赖，适合在文本、字幕和 TTS 已跑通后再逐步接入。
+
+### 方式六：启动身份治理服务
+
+```powershell
+uv run python -m services.identity_admin.main serve
+```
+
+## 推荐联调顺序
+
+1. 先跑 `uchat.cli`，确认文本主链和模型配置可用。
+2. 再跑 `obs_bridge`，确认字幕链路可连通。
+3. 再接 `tts_bridge`，确认句级播放和字幕同步正常。
+4. 再接 `bilibili_gateway`，确认结构化直播事件进入 runtime。
+5. 最后再接 `body_service`、`lipsync_bridge` 和 `identity_admin`。
+
+这样最容易定位问题，也能避免一开始就被多服务耦合卡住。
+
+## 当前运行边界
+
+- `uchat.cli` 已支持控制台输入和直播输入并行轮询
+- runtime 已固定为“事件归一化 -> 记忆/上下文 -> LLM -> 句级输出 -> TTS/OBS 分发”的主链
+- `tts_bridge` 是独立服务，不要求把播放逻辑塞回 runtime
+- `body_service` 已是正式 sidecar，不再只是占位目录
+- `lipsync_bridge` 只做旁路镜像，不反压 TTS 主链
+- `identity_admin` 负责人工治理身份，不是 runtime 内部回复决策模块
 
 ## 文档入口
 
-优先从这里看：
+建议先看：
 
 - [docs/README.md](docs/README.md)
-- [services/obs_bridge/README.md](services/obs_bridge/README.md)
-- [services/tts_bridge/README.md](services/tts_bridge/README.md)
-- [services/bilibili_gateway/README.md](services/bilibili_gateway/README.md)
-- [services/identity_admin/README.md](services/identity_admin/README.md)
+- [docs/project_structure_and_run.md](docs/project_structure_and_run.md)
+- [docs/configuration.md](docs/configuration.md)
+- [docs/runtime.md](docs/runtime.md)
 
-## 隐私与公开版说明
+如果你正在联调某个服务，再看对应模块文档和 `services/*/README.md`。
 
-这个仓库是公开版整理目录。
+## 公开版约束
 
-默认约束：
+如果你继续在这个公开目录里开发，建议保持以下约束不变：
 
 - 不提交 `.env`
-- 不提交数据库
-- 不提交日志/debug/data
-- 不提交私人 TTS 模型和参考音频
-- 不提交私人 cookie/token
-
-如果你继续在这个目录里开发，建议保持这些约束不变。
+- 不提交数据库和本地产物
+- 不提交私有模型、音频、vendor/runtime
+- 不提交私人 cookie/token/session
+- 不把公开示例角色误当成正式角色配置

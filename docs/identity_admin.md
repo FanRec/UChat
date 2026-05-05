@@ -6,27 +6,29 @@
 
 ## 它负责什么
 
-- challenge 发起
-- challenge 消费
-- 手工绑定账号和 person
-- rename canonical display name
+- 发起 challenge
+- 消费 challenge
+- 手工绑定账号与 person
+- 重命名 canonical display name
 - 查询 identity 状态
 
 ## 如何启动
 
-```bash
-uv run uvicorn services.identity_admin.main:app --host 127.0.0.1 --port 8111
+```powershell
+uv run python -m services.identity_admin.main serve
 ```
 
-## 依赖
+## 它依赖什么
 
-- `config/app.toml` 里的 `identity_store`
+- `config/app.toml` 中的 `[identity_store]`
 
-如果是 sqlite：
+如果使用 SQLite：
 
-- 首次启动会自动创建数据库
+- 首次启动会自动创建数据库文件
+- 默认路径是 `data/identity.sqlite3`
 
 ## 适合什么时候用
 
-- 多平台账号要归并到同一人
-- 需要手工治理 display name / person_id
+- 多平台账号要归并到同一个 person
+- 需要人工治理 display name / person_id
+- 你不想把“身份修正”逻辑硬写进 runtime 主链
