@@ -21,6 +21,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from services.tts_bridge.audio_playback import AudioPlayback, playback_timeout_ms
+from services.tts_bridge.lipsync_bridge_client import LipsyncBridgeClient
 from services.tts_bridge.models import (
     AdaptiveTraceState,
     AudioAsset,
@@ -29,6 +30,7 @@ from services.tts_bridge.models import (
     DiagnosticCandidate,
     DiagnosticResult,
     GenerationSession,
+    LipsyncBridgeConfig,
     PlaybackProgressSnapshot,
     SubtitleSyncConfig,
     StreamStrategy,
@@ -69,6 +71,7 @@ class TTSBridgeConfig:
     preset: DefaultPreset
     streaming: StreamingConfig
     subtitle_sync: SubtitleSyncConfig = SubtitleSyncConfig()
+    lipsync_bridge: LipsyncBridgeConfig = LipsyncBridgeConfig()
 
     @classmethod
     def load(cls, path: str | Path) -> "TTSBridgeConfig":
@@ -135,6 +138,9 @@ class TTSBridgeConfig:
         subtitle_sync_raw = raw.get("subtitle_sync", {})
         if not isinstance(subtitle_sync_raw, dict):
             subtitle_sync_raw = {}
+        lipsync_bridge_raw = raw.get("lipsync_bridge", {})
+        if not isinstance(lipsync_bridge_raw, dict):
+            lipsync_bridge_raw = {}
         streaming_device_raw = str(streaming_raw.get("device", "")).strip()
         stream_strategy_raw = str(streaming_raw.get("stream_strategy", "adaptive")).strip() or "adaptive"
         if stream_strategy_raw not in {"adaptive", "fixed_streaming", "fixed_batch"}:
@@ -179,6 +185,12 @@ class TTSBridgeConfig:
                 progress_interval_ms=int(subtitle_sync_raw.get("progress_interval_ms", 33)),
                 fallback_mode=str(subtitle_sync_raw.get("fallback_mode", "sentence_only")).strip() or "sentence_only",
             ),
+            lipsync_bridge=LipsyncBridgeConfig(
+                enabled=bool(lipsync_bridge_raw.get("enabled", False)),
+                base_url=str(lipsync_bridge_raw.get("base_url", "http://127.0.0.1:8105")).strip().rstrip("/"),
+                request_timeout_ms=max(50, int(lipsync_bridge_raw.get("request_timeout_ms", 250) or 250)),
+                inline_pcm_max_bytes=max(4096, int(lipsync_bridge_raw.get("inline_pcm_max_bytes", 4 * 1024 * 1024) or 4 * 1024 * 1024)),
+            ),
         )
 
 
@@ -220,6 +232,7 @@ class TTSBridgeService:
         self.vendor_manager = vendor_manager or VendorRuntime(config, config_error=TTSBridgeConfigError)
         self.player = player or AudioPlayback(device=config.streaming.device)
         self.subtitle_sync = SubtitleSyncEmitter(config.subtitle_sync)
+        self.lipsync_bridge = LipsyncBridgeClient(config.lipsync_bridge)
         self._tasks: dict[str, BridgeTask] = {}
         self._adaptive_state_by_trace: dict[str, AdaptiveTraceState] = {}
         self._sessions_by_trace: dict[str, GenerationSession] = {}
@@ -247,6 +260,7 @@ class TTSBridgeService:
             "playback_enabled": self.config.playback_enabled,
             "streaming_enabled": self.config.streaming.enabled,
             "subtitle_sync_enabled": self.config.subtitle_sync.enabled,
+            "lipsync_bridge_enabled": self.config.lipsync_bridge.enabled,
             "is_playing": self.player.is_playing,
             "is_streaming": self.player.is_streaming,
             "active_playback_task_id": self._active_playback_task_id(),
@@ -264,6 +278,7 @@ class TTSBridgeService:
     def close(self) -> None:
         self.player.stop()
         self.subtitle_sync.close()
+        self.lipsync_bridge.close()
         self.vendor_manager.close()
 
     def speak(self, request: SpeakRequest) -> dict[str, Any]:
@@ -949,6 +964,7 @@ class TTSBridgeService:
         self._sliding_window.close_trace(request.trace_id)
         self.player.cancel_all()
         self.subtitle_sync.emit_clear(trace_id=request.trace_id, generation_id=generation_id, reason="cancel_trace")
+        self.lipsync_bridge.cancel_trace_async(trace_id=request.trace_id)
         return {
             "status": "cancelled",
             "trace_id": request.trace_id,
@@ -966,6 +982,11 @@ class TTSBridgeService:
                 session.expected_end_index = max(int(request.last_segment_index), 1)
                 if session.condition is not None:
                     session.condition.notify_all()
+        self.lipsync_bridge.turn_end_async(
+            trace_id=request.trace_id,
+            generation_id=request.generation_id,
+            last_segment_index=request.last_segment_index,
+        )
         return {"status": "accepted", "trace_id": request.trace_id}
 
     def subtitle_state(self, trace_id: str) -> dict[str, Any]:
@@ -1179,6 +1200,14 @@ class TTSBridgeService:
             task = self._tasks.get(record.task_id)
         if task is None:
             return {"playback_started": False, "playback_completed": False}
+        self.lipsync_bridge.mirror_asset_async(
+            trace_id=trace_id,
+            generation_id=generation_id,
+            segment_index=segment_index,
+            task_id=task.task_id,
+            text=str(task.detail.get("text", "")),
+            asset=asset,
+        )
         if asset.kind == "pcm":
             return self._play_streaming_asset(task=task, asset=asset, chunk_buffer=[asset.pcm_bytes or b""])
         return self._play_batch_asset(task=task, asset=asset)

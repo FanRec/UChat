@@ -54,6 +54,8 @@ class SessionRuntime:
             session_id=settings.runtime.session_window_id,
             scene_id=settings.runtime.scene_id,
             scene_state=self.scene_state_updater.initial_state(),
+            short_history_render_window=settings.runtime.short_history_render_window,
+            short_history_retention_limit=settings.runtime.short_history_retention_limit,
         )
         self.logger = get_logger("uchat.runtime")
         self.identity_service = identity_service or IdentityService()
@@ -137,7 +139,7 @@ class SessionRuntime:
             ),
         )
 
-        self.output_manager.interrupt_channel(trace_id=event.trace_id, message_chain=message_chain, channel="tts")
+        self._handle_tts_interrupt_gate(event=event, message_chain=message_chain)
         self._record_normalize_stage(event, context, message_chain)
         self.recorder.record_stage(
             event.trace_id,
@@ -304,6 +306,36 @@ class SessionRuntime:
         self.state.current_state = "listening"
         self.state.degraded = False
         self.state.degraded_reason = ""
+
+    def _handle_tts_interrupt_gate(self, *, event: NormalizedEvent, message_chain: dict[str, Any]) -> None:
+        if not self.output_manager.has_active_tts_output():
+            return
+        if self._is_console_forced_interrupt(event):
+            self.output_manager.interrupt_channel(trace_id=event.trace_id, message_chain=message_chain, channel="tts")
+            return
+        self.recorder.record_stage(
+            event.trace_id,
+            message_chain,
+            queue_snapshot=self.output_manager.snapshot(),
+            stage="interrupt_gate",
+            service="runtime",
+            status="skipped",
+            decision="speaking_locked",
+            metrics={
+                "channel": "tts",
+                "input_source": str(event.metadata.get("input_source", event.source_type)),
+                "active_tts_in_flight": self.output_manager.active_tts_in_flight_count(),
+            },
+            result=MessageChainRecorder.result(
+                kind="summary",
+                summary="skipped TTS interrupt because speech is still in progress",
+            ),
+        )
+
+    @staticmethod
+    def _is_console_forced_interrupt(event: NormalizedEvent) -> bool:
+        input_source = str(event.metadata.get("input_source", "")).strip().lower()
+        return event.source_type == "console" or input_source == "console"
 
     def _normalize_console_text(self, text: str) -> NormalizedEvent:
         return NormalizedEvent.from_console(

@@ -102,6 +102,13 @@ class RuntimeOutputManager:
             snapshot["paused_traces"] = self.queue.paused_traces
             return snapshot
 
+    def has_active_tts_output(self) -> bool:
+        return self.active_tts_in_flight_count() > 0
+
+    def active_tts_in_flight_count(self) -> int:
+        with self._queue_lock:
+            return len(self.queue.in_flight_tasks(channel="tts"))
+
     def handle_sentence(
         self,
         *,

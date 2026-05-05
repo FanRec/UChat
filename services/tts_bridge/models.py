@@ -74,6 +74,14 @@ class SubtitleSyncConfig:
 
 
 @dataclass(frozen=True)
+class LipsyncBridgeConfig:
+    enabled: bool = False
+    base_url: str = "http://127.0.0.1:8105"
+    request_timeout_ms: int = 250
+    inline_pcm_max_bytes: int = 4 * 1024 * 1024
+
+
+@dataclass(frozen=True)
 class PlaybackProgressSnapshot:
     playback_started: bool
     played_ms: float

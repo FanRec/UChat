@@ -25,6 +25,8 @@ class RuntimeConfig:
     identity: str
     audience_scope: str
     scene_kind: SceneKind
+    short_history_render_window: int = 12
+    short_history_retention_limit: int = 20
 
 
 @dataclass(frozen=True)
@@ -181,6 +183,8 @@ class Settings:
                 identity=_str(runtime_raw, "identity", app_path),
                 audience_scope=_str(runtime_raw, "audience_scope", app_path),
                 scene_kind=_scene_kind(runtime_raw, "scene_kind", app_path),
+                short_history_render_window=_validated_short_history_render_window(runtime_raw, app_path),
+                short_history_retention_limit=_validated_short_history_retention_limit(runtime_raw, app_path),
             ),
             scene_defaults=SceneDefaultsConfig(
                 show_profile=normalize_show_profile(_str_default(scene_defaults_raw, "show_profile", "free_talk")),
@@ -456,3 +460,20 @@ def _build_services_config(
             )
         },
     )
+
+
+def _validated_short_history_render_window(data: Mapping[str, Any], path: Path) -> int:
+    value = _int_default(data, "short_history_render_window", 12)
+    if value < 1:
+        raise ConfigError(f"invalid short_history_render_window '{value}' in {path}: must be >= 1")
+    return value
+
+
+def _validated_short_history_retention_limit(data: Mapping[str, Any], path: Path) -> int:
+    render_window = _validated_short_history_render_window(data, path)
+    value = _int_default(data, "short_history_retention_limit", 20)
+    if value < render_window:
+        raise ConfigError(
+            f"invalid short_history_retention_limit '{value}' in {path}: must be >= short_history_render_window ({render_window})"
+        )
+    return value

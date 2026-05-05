@@ -5,6 +5,28 @@
   var ws = null;
   var reconnectTimer = null;
   var reconnectDelay = 1000;
+  var overlayConfig = null;
+
+  function applyOverlayConfig(config) {
+    if (!config || !config.css_variables) return;
+    var variables = config.css_variables;
+    Object.keys(variables).forEach(function (key) {
+      document.documentElement.style.setProperty(key, String(variables[key]));
+    });
+    overlayConfig = config;
+  }
+
+  function loadOverlayConfig() {
+    return fetch("/overlay/config", { cache: "no-store" })
+      .then(function (response) {
+        if (!response.ok) return null;
+        return response.json();
+      })
+      .then(function (config) {
+        if (config) applyOverlayConfig(config);
+      })
+      .catch(function () {});
+  }
 
   function connect() {
     var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -65,5 +87,7 @@
     return el;
   }
 
-  connect();
+  loadOverlayConfig().then(function () {
+    connect();
+  });
 })();

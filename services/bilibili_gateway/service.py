@@ -489,7 +489,7 @@ class BilibiliGatewayService:
             owner_uid=self.config.room.owner_uid,
             cookies=self.config.auth.cookies(),
             service=self,
-            skip_live_status_check=False,
+            skip_live_status_check=self.config.testing.live_connect_fallback_mode == "offline_history",
         )
         try:
             await room.connector.start()

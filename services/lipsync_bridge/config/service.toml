@@ -1,0 +1,12 @@
+service_name = "lipsync_bridge"
+base_url = "http://127.0.0.1:8105"
+host = "127.0.0.1"
+port = 8105
+
+[output]
+# 这里填写 Windows 虚拟线/虚拟麦对应的“播放输出设备”名称，例如 VB-CABLE Input。
+device = "CABLE Input (VB-Audio Virtual Cable)"
+max_queue_size = 8
+drain_timeout_ms = 2500
+# 留空 = 自动跟随目标输出设备默认采样率（推荐）
+# sample_rate = 48000

@@ -1,0 +1,265 @@
+body_id = "hiyori_vts"
+backend = "vts"
+model_hint = "Hiyori_A"
+
+[tracking]
+head_x = "FaceAngleX"
+head_y = "FaceAngleY"
+head_z = "FaceAngleZ"
+eye_x = "EyeRightX"
+eye_y = "EyeRightY"
+smile = "MouthSmile"
+
+[baseline_profiles]
+neutral = "idle"
+warm = "soft_smile"
+playful = "playful_smile"
+focused = "focused"
+
+[idle]
+tick_hz = 30.0
+base_intensity = 0.82
+speaking_boost = 2.82
+head_x_range = 6.8
+head_y_range = 5.3
+head_z_range = 4.2
+eye_x_range = 0.32
+eye_y_range = 0.22
+smile_floor = 0.06
+smile_range = 0.14
+breath_floor = 0.13
+breath_range = 0.24
+breath_head_y_range = 1.46
+breath_head_z_range = 0.86
+tracking_alpha_idle = 0.22
+tracking_alpha_speaking = 0.3
+tracking_alpha_event = 0.64
+tracking_alpha_head_idle = 0.34
+tracking_alpha_head_speaking = 0.29
+tracking_alpha_head_event = 0.52
+tracking_alpha_body_idle = 0.14
+tracking_alpha_body_speaking = 0.19
+tracking_alpha_body_event = 0.36
+tracking_alpha_eye_idle = 0.3
+tracking_alpha_eye_speaking = 0.48
+tracking_alpha_eye_event = 0.72
+tracking_alpha_smile_idle = 0.18
+tracking_alpha_smile_speaking = 0.24
+tracking_alpha_smile_event = 0.4
+wander_head_x_range = 6.4
+wander_head_y_range = 3.1
+wander_head_z_range = 2.35
+wander_eye_x_range = 0.52
+wander_eye_y_range = 0.36
+wander_duration_min_s = 2.4
+wander_duration_max_s = 5.2
+glance_probability = 0.34
+glance_head_x_range = 4.25
+glance_head_y_range = 1.86
+glance_head_z_range = 2.35
+glance_eye_x_range = 0.62
+glance_eye_y_range = 0.35
+glance_duration_min_s = 0.82
+glance_duration_max_s = 1.58
+glance_hold_ratio = 0.28
+glance_return_softness = 0.86
+attention_head_x_range = 10.6
+attention_head_y_range = 4.8
+attention_head_z_range = 4.4
+attention_eye_x_range = 0.52
+attention_eye_y_range = 0.28
+attention_duration_min_s = 2.3
+attention_duration_max_s = 5.4
+attention_hold_ratio = 0.5
+attention_return_softness = 1.08
+attention_eye_lead_ratio = 0.12
+attention_head_follow_gain = 2.45
+attention_body_follow_gain = 1.7
+performance_head_x_range = 5.8
+performance_head_y_range = 4.6
+performance_head_z_range = 3.8
+performance_eye_x_range = 0.18
+performance_eye_y_range = 0.12
+performance_bounce_gain = 1.42
+performance_loop_gain = 1.28
+
+[idle_stage_runtime]
+enabled = true
+cooldown_min_s = 3.1
+cooldown_max_s = 5.8
+suppression_after_speaking_s = 2.0
+allow_hotkey = true
+
+[speech_reactive]
+enabled = true
+speaking_expression = "soft_smile"
+motion_cycle = []
+motion_cooldown_ms = 1600
+segment_complete_hold_ms = 420
+segment_bridge_hold_ms = 1450
+speaking_yaw_range = 8.4
+speaking_pitch_range = 5.2
+speaking_roll_range = 4.2
+speaking_anchor_yaw_range = 4.4
+speaking_anchor_pitch_range = 1.9
+speaking_anchor_roll_range = 2.55
+sway_yaw_range = 4.35
+sway_roll_range = 3.15
+sway_pitch_range = 2.34
+sway_rate_min_hz = 0.46
+sway_rate_max_hz = 0.92
+signature_scale_min = 1.24
+signature_scale_max = 1.92
+onset_emphasis_min = 0.96
+onset_emphasis_max = 1.34
+settle_strength_min = 0.64
+settle_strength_max = 1.04
+smile_boost_min = 0.045
+smile_boost_max = 0.11
+cooldown_falloff_ms = 1120
+speaking_eye_x_range = 0.66
+speaking_eye_y_range = 0.4
+speaking_eye_anchor_x_range = 0.35
+speaking_eye_anchor_y_range = 0.2
+glance_rate_min_hz = 0.28
+glance_rate_max_hz = 0.62
+segment_duration_floor_ms = 760
+segment_duration_per_char_ms = 72.0
+accent_window_ratio_min = 0.28
+accent_window_ratio_max = 0.76
+accent_duration_ratio_min = 0.14
+accent_duration_ratio_max = 0.28
+accent_hold_ratio_min = 0.08
+accent_hold_ratio_max = 0.22
+accent_yaw_range = 3.9
+accent_pitch_range = 1.68
+accent_roll_range = 1.86
+accent_eye_x_range = 0.6
+accent_eye_y_range = 0.28
+accent_switch_chance = 0.48
+accent_eye_lead_ratio = 0.34
+accent_head_follow_ratio = 0.7
+accent_body_follow_ratio = 1.08
+figure8_mix_min = 0.12
+figure8_mix_max = 0.24
+retarget_window_ratio_min = 0.46
+retarget_window_ratio_max = 0.86
+retarget_duration_ratio_min = 0.18
+retarget_duration_ratio_max = 0.3
+retarget_hold_ratio_min = 0.12
+retarget_hold_ratio_max = 0.26
+retarget_switch_chance = 0.64
+retarget_eye_lead_ratio = 0.22
+retarget_head_follow_ratio = 0.52
+retarget_body_follow_ratio = 0.86
+retarget_yaw_range = 3.2
+retarget_pitch_range = 1.12
+retarget_roll_range = 1.34
+retarget_eye_x_range = 0.56
+retarget_eye_y_range = 0.24
+
+[expressions.idle]
+tracking_bias = { smile = 0.04 }
+
+[expressions.soft_smile]
+tracking_bias = { smile = 0.14, head_y = 0.35 }
+
+[expressions.playful_smile]
+tracking_bias = { smile = 0.24, head_x = 0.5, head_y = 0.55 }
+
+[expressions.shy]
+tracking_bias = { smile = 0.10, head_x = -0.35, head_y = -0.55 }
+
+[expressions.focused]
+tracking_bias = { smile = 0.06, head_y = 0.22 }
+
+[motions.gentle_nod]
+hotkey = "My Animation 1"
+cooldown_ms = 1500
+duration_ms = 1200
+tracking_boost = { head_y = 1.1 }
+
+[motions.light_sway]
+hotkey = "My Animation 2"
+cooldown_ms = 1800
+duration_ms = 1400
+tracking_boost = { head_x = 0.85, head_z = 0.4 }
+
+[motions.cute_emphasis]
+hotkey = "My Animation 3"
+cooldown_ms = 2100
+duration_ms = 1300
+tracking_boost = { head_x = 0.55, head_y = 0.8, smile = 0.08 }
+
+[idle_stages.cute_sway]
+pattern = "sway"
+expression = "playful_smile"
+weight = 1.2
+duration_min_s = 3.2
+duration_max_s = 4.8
+hold_ratio = 0.54
+head_x_range = 9.8
+head_y_range = 4.2
+head_z_range = 5.6
+eye_x_range = 0.34
+eye_y_range = 0.18
+smile_boost = 0.07
+bounce_gain = 0.88
+loop_gain = 0.82
+eye_lead_ratio = 0.18
+head_follow_ratio = 0.42
+body_follow_ratio = 0.6
+return_softness = 1.06
+switch_chance = 0.44
+tracking_gain = 1.08
+motion_intensity = 0.0
+hotkey_probability = 0.0
+
+[idle_stages.peek_attention]
+pattern = "peek"
+expression = "soft_smile"
+weight = 1.0
+duration_min_s = 2.2
+duration_max_s = 3.2
+hold_ratio = 0.4
+head_x_range = 11.8
+head_y_range = 4.2
+head_z_range = 5.0
+eye_x_range = 0.54
+eye_y_range = 0.26
+smile_boost = 0.055
+bounce_gain = 1.0
+loop_gain = 0.74
+eye_lead_ratio = 0.06
+head_follow_ratio = 0.32
+body_follow_ratio = 0.52
+return_softness = 1.02
+switch_chance = 0.52
+tracking_gain = 1.12
+motion_intensity = 0.0
+hotkey_probability = 0.0
+
+[idle_stages.bounce_emphasis]
+pattern = "bounce"
+expression = "playful_smile"
+motion = "cute_emphasis"
+weight = 0.78
+duration_min_s = 1.35
+duration_max_s = 2.0
+hold_ratio = 0.22
+head_x_range = 6.8
+head_y_range = 5.8
+head_z_range = 4.6
+eye_x_range = 0.28
+eye_y_range = 0.2
+smile_boost = 0.085
+bounce_gain = 0.94
+loop_gain = 0.72
+eye_lead_ratio = 0.12
+head_follow_ratio = 0.24
+body_follow_ratio = 0.44
+return_softness = 0.98
+switch_chance = 0.26
+tracking_gain = 0.96
+motion_intensity = 0.6
+hotkey_probability = 0.16

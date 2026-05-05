@@ -1,3 +1,31 @@
 service_name = "body_service"
 base_url = "http://127.0.0.1:8103"
-mock_mode = true
+host = "127.0.0.1"
+port = 8103
+
+[body]
+body_id = "hiyori_vts"
+active_profile = "hiyori_vts"
+idle_enabled = true
+event_history_limit = 80
+
+[paths]
+profile_dir = "services/body_service/config/body_profiles"
+debug_dir = "debug/body_service"
+auth_token_path = "data/body_service/vts_auth_token.txt"
+
+[debug]
+enabled = true
+print_panels = true
+write_latest_state = true
+
+[backend]
+type = "vts"
+connect_on_startup = true
+
+[backend.vts]
+ws_url = "ws://127.0.0.1:8001"
+plugin_name = "UChat Body Service"
+plugin_developer = "FanRec"
+connect_timeout_ms = 1200
+request_timeout_ms = 1200

@@ -206,6 +206,7 @@ class NormalizedEvent:
             metadata={
                 "origin_system": "uchat",
                 "platform": "console",
+                "input_source": "console",
                 "platform_user_id": "user_local_default",
                 "console_user_id": "user_local_default",
                 "console_display_name": "控制台用户",
@@ -769,6 +770,8 @@ class SessionState:
     session_id: str
     scene_id: str
     scene_state: SceneState
+    short_history_render_window: int = 12
+    short_history_retention_limit: int = 20
     session_snapshot: SessionStateSnapshot = field(default_factory=SessionStateSnapshot)
     current_state: str = "idle"
     degraded: bool = False
@@ -797,13 +800,13 @@ class SessionState:
     def render_short_history(self) -> str:
         if not self.short_history:
             return "（暂无）"
-        return "\n".join(f"{item['role']}: {item['content']}" for item in self.short_history[-12:])
+        return "\n".join(f"{item['role']}: {item['content']}" for item in self.short_history[-self.short_history_render_window :])
 
     def render_short_history_self_view(self) -> str:
         if not self.short_history:
             return "（暂无）"
         rendered: list[str] = []
-        for item in self.short_history[-12:]:
+        for item in self.short_history[-self.short_history_render_window :]:
             role = str(item.get("role", "")).strip()
             content = str(item.get("content", "")).strip()
             if not content:
@@ -817,5 +820,5 @@ class SessionState:
         return "\n".join(rendered) if rendered else "（暂无）"
 
     def _trim(self) -> None:
-        if len(self.short_history) > 20:
-            self.short_history = self.short_history[-20:]
+        if len(self.short_history) > self.short_history_retention_limit:
+            self.short_history = self.short_history[-self.short_history_retention_limit :]

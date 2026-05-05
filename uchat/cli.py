@@ -174,12 +174,15 @@ def _run_live_loop(*, runtime: RuntimeOrchestrator, input_adapter, live_adapter:
     command_queue: Queue[str] = Queue()
     stop_event = threading.Event()
     live_connected = False
+    next_live_connect_attempt_ms = 0.0
+    live_retry_notice_emitted = False
     try:
         live_adapter.start()
         live_connected = True
     except Exception:
         logger.exception("live adapter connect failed", extra={"stage": "live_connect", "service": "runtime", "status": "error"})
         print("直播输入连接失败，当前将继续保留控制台模式运行；详情见后台日志。", file=sys.stderr)
+        next_live_connect_attempt_ms = time.perf_counter() * 1000 + 1000
 
     def _console_reader() -> None:
         while not stop_event.is_set():
@@ -211,10 +214,32 @@ def _run_live_loop(*, runtime: RuntimeOrchestrator, input_adapter, live_adapter:
             if live_connected:
                 try:
                     _process_live_gateway_events(runtime=runtime, live_adapter=live_adapter)
+                    if not getattr(live_adapter, "is_connected", True):
+                        live_connected = False
+                        next_live_connect_attempt_ms = time.perf_counter() * 1000 + 1000
                 except Exception:
                     logger.exception("live poll failed", extra={"stage": "live_poll", "service": "runtime", "status": "error"})
                     print("直播事件拉取失败，详情见后台日志。", file=sys.stderr)
-                    time.sleep(1.0)
+                    live_connected = False
+                    reconnect_backoff_ms = getattr(live_adapter, "reconnect_backoff_ms", 1000)
+                    next_live_connect_attempt_ms = time.perf_counter() * 1000 + max(reconnect_backoff_ms, 1000)
+                    live_retry_notice_emitted = False
+            else:
+                now_ms = time.perf_counter() * 1000
+                if now_ms >= next_live_connect_attempt_ms:
+                    try:
+                        live_adapter.start()
+                    except Exception:
+                        reconnect_backoff_ms = getattr(live_adapter, "reconnect_backoff_ms", 1000)
+                        next_live_connect_attempt_ms = now_ms + max(reconnect_backoff_ms, 1000)
+                        if not live_retry_notice_emitted:
+                            logger.warning("live adapter reconnect pending", extra={"stage": "live_reconnect", "service": "runtime", "status": "warn"})
+                            print("直播输入暂未恢复，后台将继续自动重试。", file=sys.stderr)
+                            live_retry_notice_emitted = True
+                    else:
+                        live_connected = True
+                        live_retry_notice_emitted = False
+                        print("直播输入已恢复连接。")
             time.sleep(0.25)
     finally:
         stop_event.set()

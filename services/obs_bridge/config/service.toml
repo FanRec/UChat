@@ -2,52 +2,97 @@
 # 字幕 overlay 服务，通过 WebSocket 向 OBS Browser Source 推送实时字幕。
 
 [service]
+# 服务名，仅用于 health / 日志展示
 service_name = "obs_bridge"
+# HTTP / WebSocket 监听地址
 listen_host = "127.0.0.1"
 listen_port = 8104
+# 预留 mock 开关；当前 overlay 主链仍按真实链路工作
 mock_mode = false
 
 [overlay]
-# 每句字幕显示时长（秒），整轮结束后再统一计时淡出
-display_duration = 8.0
-# 打字机效果每字符间隔（毫秒），0 = 立即显示
-typewriter_speed_ms = 35
-# 整轮结束后的淡出延迟（秒），等 TTS 说完
-turn_end_fade_delay = 4.0
-# 淡入/淡出动画时长（毫秒）
-fade_in_ms = 250
-fade_out_ms = 500
-# 最大同时显示行数（超过时移除最旧行）
+# 同屏最多保留多少句字幕；超过后由状态快照裁掉更旧行
 max_lines = 5
-# 字体大小（CSS 值）
-font_size = "22px"
-# 默认字体颜色
-font_color = "#FFFFFF"
-# 当前正在说的那句高亮色
-active_color = "#FFFFFF"
-# 已说完的句子变暗色
-dim_color = "rgba(255,255,255,0.55)"
-# 文字阴影
-text_shadow = "0 1px 4px rgba(0,0,0,0.8)"
-# 半透明背景色（当前行胶囊底）
-background = "rgba(30,30,35,0.82)"
-border_radius = "20px"
-padding = "7px 16px"
-# 位置：bottom_center / bottom_left / bottom_right / top_center
-position = "bottom_center"
-# 底部偏移量
-bottom_offset = "60px"
-# 最大宽度
-max_width = "750px"
-# 行间距
-line_spacing = "6px"
-# 样式预设：bubble / minimal / cyberpunk
-style_preset = "bubble"
+# 字幕锚点。当前代码已接通 bottom_center，其他锚点保留为后续扩展位
+anchor = "bottom_center"
+# Browser Source 页面字体栈
+font_family = '"Nunito", "Trebuchet MS", "Segoe UI", sans-serif'
+# 桌面端字幕容器相对底部 / 顶部 / 左右边距的布局基线
+container_bottom = "32px"
+container_top = "32px"
+container_side_offset = "32px"
+# 容器宽度：最终渲染效果等价于 min(container_width, container_max_width)
+container_width = "72vw"
+container_max_width = "760px"
+# 多行字幕之间的垂直间距
+container_gap = "6px"
+# 单行字幕胶囊的最小高度与内边距
+line_min_height = "1.4em"
+line_padding = "3px 12px"
+# 主字号、行高、字重与字距
+font_size = "29px"
+line_height = 1.34
+font_weight = 700
+letter_spacing = "0.01em"
+# 文本对齐方式
+text_align = "center"
+# 默认 / 当前行 / 历史行文字颜色
+text_color = "#fffdfd"
+active_text_color = "#fffdfd"
+history_text_color = "#fffdfd"
+# 默认 / 当前行 / 历史行底色
+line_background = "rgba(24, 26, 34, 0.14)"
+active_background = "rgba(24, 26, 34, 0.14)"
+history_background = "rgba(24, 26, 34, 0.14)"
+# 阴影、圆角、描边与胶囊阴影
+text_shadow = "0 2px 0 rgba(31, 21, 39, 0.7), 0 3px 12px rgba(0, 0, 0, 0.26)"
+border_radius = "14px"
+text_stroke_width = "4px"
+text_stroke_color = "rgba(31, 21, 39, 0.92)"
+box_shadow = "0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 10px 24px rgba(20, 18, 30, 0.1)"
+
+[overlay.glow]
+# 是否启用字幕底部的柔光氛围层
+enabled = true
+# 柔光层位置与尺寸
+bottom = "10px"
+width = "70vw"
+max_width = "760px"
+height = "150px"
+# 柔光层模糊强度与背景渐变
+blur = "12px"
+background = "radial-gradient(circle at center, rgba(255, 212, 236, 0.12), rgba(255, 212, 236, 0))"
+
+[overlay.breakpoints.compact]
+# 中等屏幕断点：<= 1280px 时覆盖主样式
+max_width = 1280
+container_width = "80vw"
+container_max_width = "720px"
+container_bottom = "26px"
+container_gap = "6px"
+line_padding = "3px 12px"
+font_size = "25px"
+line_height = 1.34
+border_radius = "14px"
+text_stroke_width = "3px"
+
+[overlay.breakpoints.mobile]
+# 移动端断点：<= 768px 时覆盖主样式
+max_width = 768
+container_width = "90vw"
+container_max_width = "640px"
+container_bottom = "18px"
+container_gap = "4px"
+line_padding = "2px 9px"
+font_size = "20px"
+line_height = 1.28
+border_radius = "10px"
+text_stroke_width = "2.6px"
 
 [observability]
-# 日志等级
+# 服务日志等级
 log_level = "INFO"
-# 是否输出调试转储
+# 是否向 debug 目录输出额外调试转储
 debug_dump_enabled = false
-# 调试转储目录
+# 调试转储根目录
 debug_dump_dir = "debug/obs_bridge"

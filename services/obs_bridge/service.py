@@ -9,7 +9,7 @@ from typing import Any
 
 from fastapi import WebSocket
 
-from services.obs_bridge.config import ObsBridgeConfig, OverlayConfig
+from services.obs_bridge.config import ObsBridgeConfig
 from services.obs_bridge.subtitle_state import SubtitleStateStore
 
 logger = logging.getLogger("services.obs_bridge")
@@ -38,10 +38,13 @@ class ObsBridgeService:
             "ws_connections": ws_count,
             "overlay": {
                 "max_lines": self.overlay_config.max_lines,
-                "position": self.overlay_config.position,
-                "style_preset": self.overlay_config.style_preset,
+                "anchor": self.overlay_config.anchor,
+                "glow_enabled": self.overlay_config.glow_enabled,
             },
         }
+
+    def overlay_payload(self) -> dict[str, Any]:
+        return self.overlay_config.to_frontend_payload()
 
     def handle_subtitle(self, body: dict[str, Any]) -> dict[str, Any]:
         trace_id = str(body.get("trace_id", ""))

@@ -34,6 +34,11 @@ class BilibiliLiveInputAdapter(InputAdapter):
         self._cursor = ""
         self._connected = False
         self._connection_mode = ""
+        self._needs_cursor_reset = False
+
+    @property
+    def is_connected(self) -> bool:
+        return self._connected
 
     def start(self) -> None:
         self.connect()
@@ -47,6 +52,7 @@ class BilibiliLiveInputAdapter(InputAdapter):
     def connect(self) -> None:
         if self.client is None:
             self._connected = True
+            self._needs_cursor_reset = False
             return
         payload: dict[str, Any] = {}
         if self.room_id:
@@ -59,10 +65,14 @@ class BilibiliLiveInputAdapter(InputAdapter):
             headers={"content-type": "application/json"},
         )
         if response.status_code not in {200, 202}:
+            self._connected = False
             raise RuntimeError(f"Bilibili connect failed: {response.status_code} {response.text}")
         body = response.json() if response.content else {}
         self._connection_mode = str(body.get("connection_mode", ""))
         self._connected = True
+        if self._needs_cursor_reset:
+            self._cursor = ""
+            self._needs_cursor_reset = False
 
     def disconnect(self) -> None:
         if self.client is not None and self._connected:
@@ -76,6 +86,7 @@ class BilibiliLiveInputAdapter(InputAdapter):
             )
         self._connected = False
         self._connection_mode = ""
+        self._needs_cursor_reset = False
 
     def build_danmaku_event(
         self,
@@ -176,13 +187,21 @@ class BilibiliLiveInputAdapter(InputAdapter):
             response = self.client.get("/v1/bilibili/events", params=params)
         except httpx.HTTPError:
             self._connected = False
+            self._needs_cursor_reset = True
             time.sleep(max(self.reconnect_backoff_ms, 0) / 1000)
             self.connect()
             response = self.client.get("/v1/bilibili/events", params=params)
         if response.status_code != 200:
+            self._connected = False
+            self._needs_cursor_reset = True
             raise RuntimeError(f"Bilibili poll failed: {response.status_code} {response.text}")
         body = response.json() if response.content else {}
+        if body.get("cursor_expired"):
+            self._cursor = ""
+            self._needs_cursor_reset = True
+            return self.poll_events(limit=limit)
         self._cursor = str(body.get("next_cursor", self._cursor))
+        self._needs_cursor_reset = False
         normalized: list[NormalizedEvent] = []
         for item in body.get("events", []):
             if not isinstance(item, dict):

@@ -83,4 +83,4 @@ offline_test_mode_enabled = true
 # live 连接失败后的显式 fallback。
 # 留空 = live 失败就失败，不偷偷切模式。
 # 可选值："" / "offline_history"
-live_connect_fallback_mode = ""
+live_connect_fallback_mode = "offline_history"

@@ -11,7 +11,7 @@ playback_enabled = true
 
 [vendor]
 api_style = "api_v2"
-python_executable = "python"
+python_executable = "services/tts_bridge/vendor/gpt_sovits_v2pro/runtime/python.exe"
 entry_script = "services/tts_bridge/vendor/gpt_sovits_v2pro/api_v2.py"
 tts_config_path = "services/tts_bridge/config/zhenxun_tts_infer.yaml"
 device = "cuda"
@@ -64,3 +64,9 @@ enabled = true
 obs_base_url = "http://127.0.0.1:8104"
 progress_interval_ms = 33
 fallback_mode = "sentence_only"
+
+[lipsync_bridge]
+enabled = true
+base_url = "http://127.0.0.1:8105"
+request_timeout_ms = 250
+inline_pcm_max_bytes = 4194304

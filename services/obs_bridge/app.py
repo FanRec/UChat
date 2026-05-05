@@ -8,8 +8,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from services.obs_bridge.config import ObsBridgeConfig
-from services.obs_bridge.service import ObsBridgeService, _debug_info, _debug_ws, _debug_error
+from services.obs_bridge.service import ObsBridgeService, _debug_info
 
 
 class SubtitleRequest(BaseModel):
@@ -42,7 +41,7 @@ def create_app(service: ObsBridgeService) -> FastAPI:
     async def lifespan(app: FastAPI):
         _debug_info(
             f"obs_bridge ready on {service.config.service.listen_host}:{service.config.service.listen_port}\n"
-            f"overlay: {service.overlay_config.position}  style={service.overlay_config.style_preset}\n"
+            f"overlay: anchor={service.overlay_config.anchor}  max_lines={service.overlay_config.max_lines}\n"
             f"ws endpoint: ws://{service.config.service.listen_host}:{service.config.service.listen_port}/ws/subtitle"
         )
         yield
@@ -56,6 +55,10 @@ def create_app(service: ObsBridgeService) -> FastAPI:
     @app.get("/health")
     async def health():
         return service.health()
+
+    @app.get("/overlay/config")
+    async def overlay_config():
+        return service.overlay_payload()
 
     @app.post("/v1/obs/subtitle")
     async def post_subtitle(req: SubtitleRequest):

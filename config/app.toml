@@ -24,11 +24,15 @@ Replace it with your own character prompt.
 audience_scope = "stream"
 # 当前运行环境：console / live_stream / private_chat
 scene_kind = "live_stream"
+# 短期临时记忆渲染窗口：prompt 中最多使用最近多少条 user/assistant 历史
+short_history_render_window = 65
+# 短期临时记忆保留上限：内存里最多保留多少条 user/assistant 历史
+short_history_retention_limit = 80
 
 [scene_defaults]
 show_profile = "free_talk"
-program_topic = ""
-segment_topic = ""
+program_topic = "测试小幽"
+segment_topic = "小幽自己是什么"
 micro_topic = ""
 danmaku_velocity = "n/a"
 audience_density = "n/a"
